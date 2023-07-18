@@ -1,0 +1,116 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} {{auction.title}} {% endblock %}
+
+{% block body %}
+<div class="auction-container">
+    <div class="image-section">
+        {% if auction.image_url %}
+            <img class="bid-image-large" src="{{ auction.image_url }}" alt="Listing Image">
+        {% else %}
+            <img class="bid-image-large" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png" alt="Image Not Available">
+        {% endif %}
+    </div>
+    <div class="auction-details">   
+        {% if user.is_authenticated %}
+        <div class="container watchlist">
+            <form action="{% url 'watchlist' %}" method="POST" class="d-inline-block">
+                <input type="hidden" name="listing_id" value="{{ auction.id }}">
+                {% csrf_token %}
+                {% if is_in_watchlist %}
+                    <button type="submit" name="action" value="remove" class="btn btn-outline-primary btn-sm">
+                        <i class="fa fa-minus" aria-hidden="true"></i> Watchlist
+                    </button>
+                {% else %}
+                    <button type="submit" name="action" value="add" class="btn btn-primary btn-sm">
+                        <i class="fa fa-plus" aria-hidden="true"></i> Watchlist
+                    </button>
+                {% endif %}
+            </form>
+        </div>
+    {% endif %}
+    
+
+        <h1 class="auction-title">{{ auction.title }}</h1>
+        <p class="auction-description">{{ auction.description }}</p>
+        <h3 class="auction-starting-bid">Starting bid:  <strong>${{ auction.starting_bid }}</strong></h3>
+        <div class="bid_info">
+            {% if highest_bid %}
+                {% if can_bid or auction_active %}
+                    <h2>Current Highest bid: <strong>${{ highest_bid.bid|floatformat:2 }}</strong></h2>
+                {% else %} 
+                    <h2>Winning bid: <strong>${{ highest_bid.bid|floatformat:2 }}</strong></h2>
+                {% endif %}
+            {% elif not can_bid and not auction_active %}
+                <h2>No bids were submitted, so no winner.</h2>  
+            {% else %}
+                <h2>No bids placed yet</h2>
+            {% endif %}
+        </div>
+        <div class="bid_to_login" style="margin-top: 10px; margin-bottom: 10px; color:rgb(238, 73, 73);">
+            {% if log_to_bid %}
+                <h5>You have to <strong>sign in</strong> to bid.</h5> 
+            {% endif %}
+        </div>
+        <p id="bids" class="space-below" style="font-size: 18px;"><em>{{ auction.bids.count }} bid(s) so far.</em></p>
+        <div class="bid_info">
+            {% if highest_bid.user == user and can_bid %}
+                <h5>Your bid is the highest bid </h5>   
+            {% endif %}  
+        </div>
+        {% if can_bid and not auction.user.username == user.username %}
+            <div class="place-bid">
+                <form action="{% url 'listing' auction.id %}" method="post" style="width: 250px;">
+                    {% csrf_token %}
+                    <div class="form-group dollar-input">
+                        <input class="form-control input-bid" type="number" step="0.01" name="bid" placeholder="Bid">
+                        <span class="dollar-symbol">$</span>
+                    </div>
+                    <div class="btn-container">
+                        <input class="btn btn-primary" type="submit" value="Place Bid">
+                    </div>
+                </form>
+            </div>          
+        {% endif %}
+        {% if auction.user.username == user.username and can_bid %}
+            <div class="close-auction">
+                <form action="{% url 'listing' auction.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="close_auction" value="true">
+                    <input class="btn btn-primary" type="submit" value="Close auction" style="background-color: darkred; border-color:darkred; align-items: center;">
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="comments-section">
+    <h2>Comments <span class="badge badge-secondary">{{ comments_count }}</span></h2>
+    {% if not user.is_authenticated %}
+        <h6 style=" margin-bottom: 40px; color:rgb(238, 73, 73);">Please <strong>sign in</strong> to add a comment.</h6>
+    {% endif %}
+    
+    <div class="user_comments">
+    {% for comment in comments %}
+        <div class="comment">
+            <h3>{{ comment.user.username }}</h3>
+            <p>{{ comment.description }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    {% if user.is_authenticated %}
+    <div class="add-comment">
+        <form action="{% url 'comment' auction.id %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea class="form-control" name="description" rows="5" placeholder="Write a comment" required></textarea>
+            </div>
+            <input class="btn btn-primary" type="submit" value="Add comment">
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

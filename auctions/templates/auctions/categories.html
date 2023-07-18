@@ -1,0 +1,53 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} Categories {% endblock %}
+
+{% block body %}
+
+    {% for category_key, category_value in categories %}
+        <nav class="navMenu">
+            <a href="{% url 'categories_with_arg' category_key %}">{{ category_value }}</a>
+            <div class="dot"></div>
+        </nav>    
+    {% endfor %}
+
+    {% if category %}
+        <h1 style="text-align: center;">Auctions in {{ category }}</h1>
+        {% if auctions %}
+        <div class="listings-container"> 
+        {% for auction in auctions %}
+        <a class="listing-link" href="{% url 'listing' auction.id %}">
+            <div class="listings">
+                <div class="listings-content">
+                    {% if auction.image_url %}
+                    <div class="image-container">
+                        <img class="listings-image" src="{{ auction.image_url }}" alt="Listing Image">
+                    </div>
+                    {% else %}
+                        <div class="image-container">
+                            <img class="listings-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png" alt="Image Not Available">
+                        </div>
+                    {% endif %}
+                    <div class="listings-details">
+                        <p id="title">{{ auction.title|slice:":22" }}{% if auction.title|length > 22 %}...{% endif %}</p>
+                        <div class="bid-price">
+                            {% if auction.highest_bid %}
+                                <p id="price">${{ auction.highest_bid|floatformat:2 }}</p>
+                            {% else %}
+                                <p id="price">${{ auction.starting_bid|floatformat:2 }}</p>
+                            {% endif %}
+                            <p id="bids">{{ auction.bids.count }} bid(s)</p>
+                        </div>
+                        <p id="description">{{ auction.description|slice:":42" }}{% if auction.description|length > 42 %}...{% endif %}</p>
+                    </div> 
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+        </div>
+        {% else %}
+            {{ message }}
+        {% endif %}
+    {% endif %}
+
+{% endblock %}

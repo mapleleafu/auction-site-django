@@ -1,0 +1,52 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} Watchlist {% endblock %}
+
+{% block body %}
+    <h2 class="listing_title">Watchlist</h2>
+    {% if messages %}
+        {{ message }}
+    {% endif %}
+    <div class="listings-container"> 
+    {% for auction in watchlist_items %}
+    <a class="listing-link" href="{% url 'listing' auction.id %}">
+        <div class="listings">
+            <div class="listings-content">
+                {% if auction.image_url %}
+                <div class="image-container">
+                    <img class="listings-image" src="{{ auction.image_url }}" alt="Listing Image">
+                </div>
+                {% else %}
+                    <div class="image-container">
+                        <img class="listings-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png" alt="Image Not Available">
+                    </div>
+                {% endif %}
+                {% if auction.can_bid %}
+                    <h4 id="active">Active</h4>
+                {% else %}
+                    <h4 id="finished">Finished</h4>
+                {% endif %}
+                        
+                <div class="listings-details">
+                    <p id="title">{{ auction.title|slice:":22" }}{% if auction.title|length > 22 %}...{% endif %}</p>
+                    <div class="bid-price">
+                        {% if auction.highest_bid %}
+                            <p id="price">${{ auction.highest_bid|floatformat:2 }}</p>
+                        {% else %}
+                            <p id="price">${{ auction.starting_bid|floatformat:2 }}</p>
+                        {% endif %}
+                        <p id="bids">{{ auction.bids.count }} bid(s)</p>
+                    </div>
+                    {% if not auction.won_auction %}
+                        <p id="description">{{ auction.description|slice:":42" }}{% if auction.description|length > 42 %}...{% endif %}</p>
+                    {% else %}
+                        <h4 id="description" style="color: green;">You won this auction!</h4>
+                    {% endif %}
+                                           
+                </div> 
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+    </div>
+{% endblock %}
